@@ -142,3 +142,104 @@ FROM (
     WHERE SUBSTRING(order_date, 1, 7) BETWEEN '2019-01' AND '2019-06'
 ) t
 GROUP BY 연도, 월 WITH ROLLUP;
+
+/**
+	show databases;
+    use myshop2019;
+	테이블 조인 : 기본 SQL 방식, ANSI SQL
+    select * from category;
+    select * from customer;
+    select * from employee;
+    select * from product;
+    select * from order_header;
+    select * from sub_category;
+    select * from order_detail;
+    
+*/
+-- Q01) 전체금액이 8,500,000 이상인 주문의 주문번호, 고객아이디, 사원번호, 주문일시, 전체금액을 조회하세요.
+select oh.order_id, oh.customer_id, oh.employee_id, oh.order_date, oh.total_due
+from order_header oh 
+inner join customer c on oh.customer_id = c.customer_id
+where oh.total_due >= 8500000;
+
+-- Q02) 위에서 작성한 쿼리문을 복사해 붙여 넣은 후 고객이름도 같이 조회되게 수정하세요.
+select oh.order_id, oh.customer_id, c.customer_name, oh.employee_id, oh.order_date, oh.total_due
+from order_header oh 
+inner join customer c on oh.customer_id = c.customer_id
+where oh.total_due >= 8500000;
+
+-- Q03) Q01 쿼리를 복사해 붙여 넣은 후 직원이름도 같이 조회되게 수정하세요.
+select oh.order_id, oh.customer_id, oh.employee_id, e.employee_name, oh.order_date, oh.total_due
+from order_header oh 
+inner join customer c on oh.customer_id = c.customer_id
+inner join employee e on oh.employee_id = e.employee_id
+where oh.total_due >= 8500000;
+
+-- Q04) 위에서 작성한 쿼리문을 복사해 붙여 넣은 후 고객이름, 직원이름도 같이 조회되게 수정하세요.
+select oh.order_id, oh.customer_id, oh.employee_id, e.employee_name, oh.order_date, oh.total_due
+from order_header oh 
+inner join customer c on oh.customer_id = c.customer_id
+inner join employee e on oh.employee_id = e.employee_id
+where oh.total_due >= 8500000;
+
+-- Q05) 위에서 작성한 쿼리문을 복사해 붙여 넣은 후 전체금액이 8,500,000 이상인 '서울' 지역 고객만 조회되게 수정하세요.
+select oh.order_id, oh.customer_id, oh.employee_id, e.employee_name, oh.order_date, oh.total_due
+from order_header oh 
+inner join customer c on oh.customer_id = c.customer_id
+inner join employee e on oh.employee_id = e.employee_id
+where oh.total_due >= 8500000
+	and c.city = '서울';
+
+-- Q06) 위에서 작성한 쿼리문을 복사해 붙여 넣은 후 전체금액이 8,500,000 이상인 '서울' 지역 '남자' 고객만 조회되게 수정하세요.
+select oh.order_id, oh.customer_id, oh.employee_id, e.employee_name, oh.order_date, oh.total_due
+from order_header oh 
+inner join customer c on oh.customer_id = c.customer_id
+inner join employee e on oh.employee_id = e.employee_id
+where oh.total_due >= 8500000
+	and c.city = '서울'
+    and c.gender = 'M';
+
+-- Q07) 주문수량이 30개 이상인 주문의 주문번호, 상품코드, 주문수량, 단가, 지불금액을 조회하세요.
+select od.order_id, od.product_id, od.order_qty, od.unit_price, od.line_total
+from order_detail od
+where od.order_qty >= 30;
+
+-- Q08) 위에서 작성한 쿼리문을 복사해서 붙여 넣은 후 상품이름도 같이 조회되도록 수정하세요.
+select od.order_id, od.product_id, p.product_name, od.order_qty, od.unit_price, od.line_total
+from order_detail od
+inner join product p on od.product_id = p.product_id
+where od.order_qty >= 30;
+
+-- Q09) 상품코드, 상품이름, 소분류아이디를 조회하세요.
+select od.product_id, p.product_name, sc.sub_category_id
+from order_detail od
+inner join product p on od.product_id = p.product_id
+inner join sub_category sc on p.sub_category_id = sc.sub_category_id
+group by product_id;
+
+-- Q10) 위에서 작성한 쿼리문을 복사해서 붙여 넣은 후 소분류이름, 대분류아이디가 조회되게 수정하세요.
+select sc.sub_category_name, ci.category_id
+from sub_category sc 
+inner join category ci on sc.category_id = ci.category_id;
+
+-- Q11) 다정한 사원이 2019년에 주문한 상품명을 모두 출력해주세요.
+select distinct p.product_name
+from employee e
+inner join order_header oh on e.employee_id = oh.employee_id
+inner join order_detail od on oh.order_id = od.order_id
+inner join product p on od.product_id = p.product_id
+where left(oh.order_date, 4) = '2019'
+	and e.employee_name = '다정한';
+
+-- Q12) 청소기를 구입한 고객아이디, 사원번호, 주문번호, 주문일시를 조회하세요.
+select  c.customer_id, oh.employee_id, oh.order_id, oh.order_date, p.product_id
+from customer c 
+inner join order_header oh on c.customer_id = oh.customer_id
+left outer join order_detail od on oh.order_id = od.order_id
+left outer join product p on od.product_id = p.product_id
+where p.product_name like '%청소기%';
+
+select * from order_header where order_id in ('201805070003', '201805040001');
+select * from order_detail where order_id in ('201805070003', '201805040001');
+select * from product;
+-- ED007~9
