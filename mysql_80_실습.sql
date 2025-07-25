@@ -1180,16 +1180,24 @@ values('홍길동', 'm', now());
 show tables;
 select * from emp;
 
--- phone(char, 13) 컬럼 추가 
-alter table emp add column phone char(13) not null;
-alter table emp drop column phone;
+-- phone(char, 13) 컬럼 추가, null 허용
+alter table emp
+	add column phone char(13) null;
+desc emp;   
+select * from emp; 
 
 insert into emp
-values('s001', '홍길동', 'm', sysdate(), 1000);
-
+	values('s004', '홍홍', 'f', now(), 4000, '010-1234-1234');
+    
+-- phone 컬럼의 크기 변경 : char(13) --> char(10)    
 alter table emp
-modify column phone char(13) null ;
+	modify column phone char(10) null; -- 저장된 데이터보다 크기가 작으면 에러 발생; 데이터 유실 위험 발생!!
 
+desc emp;    
+
+-- phone 컬럼 삭제
+alter table emp
+	drop column phone;
 
 /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	데이터 수정(update : U)
