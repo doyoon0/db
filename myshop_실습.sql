@@ -243,3 +243,234 @@ select * from order_header where order_id in ('201805070003', '201805040001');
 select * from order_detail where order_id in ('201805070003', '201805040001');
 select * from product;
 -- ED007~9
+
+/**
+	테이블 조인 : 기본 SQL 방식, ANSI SQL
+*/
+-- Q01) 전체금액이 8,500,000 이상인 주문의 주문번호, 고객아이디, 사원번호, 주문일시, 전체금액을 조회하세요.
+select 
+	oh.order_id
+	, oh.customer_id
+	, oh.employee_id
+	, oh.order_date
+	, sum(line_total) as tot
+from order_header oh 
+inner join order_detail od on oh.order_id = od.order_id
+group by order_id
+having sum(line_total) >= 8500000;
+
+-- Q02) 위에서 작성한 쿼리문을 복사해 붙여 넣은 후 고객이름도 같이 조회되게 수정하세요.
+select 
+	oh.order_id
+	, oh.customer_id
+    , ci.customer_name
+	, oh.employee_id
+	, oh.order_date
+	, sum(line_total) as tot
+from order_header oh 
+inner join order_detail od on oh.order_id = od.order_id
+inner join customer ci on oh.customer_id = ci.customer_id
+group by order_id
+having sum(line_total) >= 8500000;
+
+-- Q03) Q01 쿼리를 복사해 붙여 넣은 후 직원이름도 같이 조회되게 수정하세요.
+select 
+	oh.order_id
+	, oh.customer_id
+	, oh.employee_id
+    , e.employee_name
+	, oh.order_date
+	, sum(line_total) as tot
+from order_header oh 
+inner join order_detail od on oh.order_id = od.order_id
+inner join employee e on oh.employee_id = e.employee_id
+group by order_id
+having sum(line_total) >= 8500000;
+
+-- Q04) 위에서 작성한 쿼리문을 복사해 붙여 넣은 후 고객이름, 직원이름도 같이 조회되게 수정하세요.
+select 
+	oh.order_id
+	, oh.customer_id
+    , ci.customer_name
+	, oh.employee_id
+    , e.employee_name
+	, oh.order_date
+	, sum(line_total) as tot
+from order_header oh 
+inner join order_detail od on oh.order_id = od.order_id
+inner join customer ci on oh.customer_id = ci.customer_id
+inner join employee e on oh.employee_id = e.employee_id
+group by order_id
+having sum(line_total) >= 8500000;
+
+-- Q05) 위에서 작성한 쿼리문을 복사해 붙여 넣은 후 전체금액이 8,500,000 이상인 '서울' 지역 고객만 조회되게 수정하세요.
+select 
+	oh.order_id
+	, oh.customer_id
+    , ci.customer_name
+    , ci.city
+	, oh.employee_id
+    , e.employee_name
+	, oh.order_date
+	, sum(line_total) as tot
+from order_header oh 
+inner join order_detail od on oh.order_id = od.order_id
+inner join customer ci on oh.customer_id = ci.customer_id
+inner join employee e on oh.employee_id = e.employee_id
+where ci.city = '서울'
+group by order_id
+having sum(line_total) >= 8500000;
+
+-- Q06) 위에서 작성한 쿼리문을 복사해 붙여 넣은 후 전체금액이 8,500,000 이상인 '서울' 지역 '남자' 고객만 조회되게 수정하세요.
+select 
+	oh.order_id
+	, oh.customer_id
+    , ci.customer_name
+    , ci.city
+    , ci.gender
+	, oh.employee_id
+    , e.employee_name
+	, oh.order_date
+	, sum(line_total) as tot
+from order_header oh 
+inner join order_detail od on oh.order_id = od.order_id
+inner join customer ci on oh.customer_id = ci.customer_id
+inner join employee e on oh.employee_id = e.employee_id
+where ci.city = '서울' and ci.gender = 'M'
+group by order_id
+having sum(line_total) >= 8500000;
+
+-- Q07) 주문수량이 30개 이상인 주문의 주문번호, 상품코드, 주문수량, 단가, 지불금액을 조회하세요.
+select 
+	od.order_id
+	, od.product_id
+	, od.order_qty
+	, od.unit_price
+	, od.line_total
+from order_detail od
+where od.order_qty >= 30;
+
+-- Q08) 위에서 작성한 쿼리문을 복사해서 붙여 넣은 후 상품이름도 같이 조회되도록 수정하세요.
+select 
+	od.order_id
+	, od.product_id
+    , p.product_name
+	, od.order_qty
+	, od.unit_price
+	, od.line_total
+from order_detail od
+inner join product p on od.product_id = p.product_id
+where od.order_qty >= 30;
+
+-- Q09) 상품코드, 상품이름, 소분류아이디를 조회하세요.
+select p.product_id, p.product_name, p.sub_category_id
+from product p;
+-- Q10) 위에서 작성한 쿼리문을 복사해서 붙여 넣은 후 소분류이름, 대분류아이디가 조회되게 수정하세요.
+select 
+	p.product_id
+	, p.product_name
+	, p.sub_category_id
+    , sc.sub_category_name
+    , sc.category_id
+from product p
+inner join sub_category sc on p.sub_category_id = sc.sub_category_id;
+
+-- Q11) 다정한 사원이 2019년에 주문한 상품명을 모두 출력해주세요.
+select p.product_name
+from employee e 
+inner join order_header oh on e.employee_id = oh.employee_id
+inner join order_detail od on oh.order_id = od.order_id
+inner join product p on od.product_id = p.product_id
+where e.employee_name = '다정한' and left(oh.order_date, 4) = '2019';
+
+-- Q12) 청소기를 구입한 고객아이디, 사원번호, 주문번호, 주문일시를 조회하세요.
+select c.customer_id, oh.employee_id, oh.order_id, oh.order_date
+from customer c 
+inner join order_header oh on c.customer_id = oh.customer_id
+inner join order_detail od on oh.order_id = od.order_id
+inner join product p on od.product_id = p.product_id
+where p.product_name like '%청소기';
+
+
+/**
+	서브쿼리
+*/
+
+-- Q13) 'mtkim', 'odoh', 'soyoukim', 'winterkim' 고객 주문의 주문번호, 고객아이디, 주문일시, 전체금액을 조회하세요.    
+select order_id, customer_id, order_date, total_due
+from order_header
+where customer_id in ('mtkim', 'odoh', 'soyoukim', 'winterkim');
+
+-- Q14) '전주' 지역 고객의 아이디를 조회하세요. 
+select customer_id from customer where city = '전주';
+   
+-- Q15) 위 두 쿼리문을 조합해서 하위 쿼리를 사용해 '전주' 지역 고객 주문의 주문번호, 고객아이디, 주문일시, 전체금액을 조회하세요.
+select order_id, customer_id, order_date, total_due
+from order_header
+where customer_id in (select customer_id from customer where city = '전주');
+
+-- Q16) 고객의 포인트 최댓값을 조회하세요.
+select max(point) from customer;
+
+-- Q17) 하위 쿼리를 사용해 가장 포인트가 많은 고객의 이름, 아이디, 등록일, 포인트를 조회하세요.
+select customer_name, customer_id, register_date, point
+from customer 
+where point = (select max(point) from customer);
+ 
+-- Q18) 하위 쿼리를 사용해 홍길동(gdhong) 고객보다 포인트가 많은 고객 이름, 아이디, 등록일, 포인트를 조회하세요.
+select customer_name, customer_id, register_date, point
+from customer
+where point > (select point from customer where customer_name = '홍길동');
+
+-- Q19) 하위 쿼리를 사용해 홍길동(gdhong) 고객과 같은 지역의 고객 이름, 아이디, 지역, 등록일, 포인트를 조회하세요.
+--      단, 고객 이름을 기준으로 오름차순 정렬해서 조회하세요.
+select customer_name, customer_id, city, register_date, point
+from customer
+where city = (select city from customer where customer_name = '홍길동')
+order by customer_name;
+
+-- Q20) 하위 쿼리를 사용해 홍길동(gdhong) 고객보다 포인트가 많은 고객 이름, 아이디, 등록일, 포인트를 조회하고, 행번호를 추가하여 출력하세요.
+select row_number() over() as rno, customer_name, customer_id, register_date, point
+from customer
+where point > (select point from customer where customer_name = '홍길동');
+
+
+
+
+
+/**
+	show databases;
+    use myshop2019;
+	테이블 조인 : 기본 SQL 방식, ANSI SQL
+    select * from category;
+    select * from customer;
+    select * from employee;
+    select * from product;
+    select * from order_header;
+    select * from sub_category;
+    select * from order_detail;
+    
+    select * from order_header where employee_id = 'D0006'; --144
+    
+*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
