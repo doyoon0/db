@@ -1872,7 +1872,12 @@ where emp_id = 'S0001';
 
 select * from salary_log;
 
-
+/**************************************************************
+-- Connection 확인
+**************************************************************/
+SHOW STATUS LIKE 'Threads_connected'; 	-- 접속 커넥션 수 
+SHOW PROCESSLIST;						-- 활성중인 커넥션
+SHOW VARIABLES LIKE 'max_connections'; 	-- 최대 접속 가능 커넥션 수
 
 
 
