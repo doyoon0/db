@@ -85,10 +85,25 @@ INSERT INTO book_market_cart (isbn, userid, quantity) VALUES
 ('ISBN0007', 'user004', 1),
 ('ISBN0009', 'user004', 1);
 
+use hrdb2019;
 
 select * from book_market_books;
 select * from book_market_cart;
 select * from book_market_member;
+
+select m.isbn, userid, quantity, b.price from book_market_cart m inner join book_market_books b on m.isbn = b.isbn
+where m.userid = 'user004';
+
+				select
+					c.isbn
+					, c.userid
+					, c.quantity
+					, (c.quantity * b.price) as total
+                    , b.price
+				from book_market_cart c
+				inner join book_market_books b 
+				on c.isbn = b.isbn
+				where userid = 'user004';
 
 select count(*) from book_market_member where username = '최지은' and phone = '010-4567-8901';
 SHOW FULL COLUMNS FROM book_market_books WHERE Field = 'isbn';
