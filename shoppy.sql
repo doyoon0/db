@@ -186,5 +186,85 @@ inner join member as m on a.id = m.id
 left outer join product as p on a.pid = p.pid
 where m.id = "rainycorn" and p.pid = 1;
 
+/***************************************************
+	상품 Return/Delivery 테이블 생성 : product_return
+*************************************************/
+show tables;
+-- drop table product_return;
+create table product_return (
+	rid				int				auto_increment	primary key
+    , title			varchar(100)	not null
+    , description 	varchar(200)	
+    , list			json
+);
+
+desc product_return;
+select * from product_return;
+
+-- json_table을 이용하여 데이터 추가
+insert into product_return(title, description, list) 
+select
+	jt.title
+    , jt.description
+    , jt.list
+from
+	json_table(
+		cast(load_file('C:/ProgramData/MySQL/MySQL Server 8.0/Uploads/productReturn.json') 
+				AS CHAR CHARACTER SET utf8mb4 ),
+		'$[*]' COLUMNS (
+			 title   		VARCHAR(100)  	PATH '$.title',
+			 description	VARCHAR(200) 	PATH '$.description',
+             list			json			PATH '$.list'
+		   )   
+    ) as jt ;
+
+select  rid,
+		title,
+		description,
+		list
+from product_return;
+
+/***************************************************
+	장바구니 테이블 생성 : cart
+*************************************************/
+-- cid, pid, id, size, qty, cdate;
+create table cart(
+	cid			int 			auto_increment		primary key
+    , size		char(2)			not null
+    , qty		int				not null
+    , pid		int				not null
+    , id		varchar(50)		not null
+    , cdate		datetime		not null
+    , constraint fk_cart_pid foreign key(pid) references product(pid) 
+    on delete cascade    on update cascade
+    , constraint fk_cart_id foreign key(id) references member(id) 
+    on delete cascade    on update cascade
+);
+
+desc cart;
+select * from cart;
+delete from cart;
+
+-- pid, size를 이용하여 상품의 존재 check
+-- checkQty = 1 인 경우 cid(o) 유효 데이터
+-- checkQty = 0 인 경우 cid(x) 무효 데이터
+select count(*) as checkQty, cid from cart where pid = 1 and size = "xs" group by cid;
+select cid, sum(pid=1 and size='xs') as checkQty from cart group by cid order by checkQty desc limit 1;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
