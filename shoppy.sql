@@ -279,15 +279,22 @@ select
     , c.size
     , c.qty
     , c.cid
+    , ( select sum(c.qty * p.price) 
+		from cart as c 
+		inner join product as p on c.pid = p.pid
+		where c.id = 'kim' ) AS total_price
 from member as m 
 inner join cart as c on m.id = c.id
 left outer join product as p on p.pid = c.pid
 where m.id = 'kim';
+-- update cart set qty = 2 where id = 'kim';
+-- delete from cart where cid = 20;
 
-update cart set qty = 2 where id = 'kim';
-
-delete from cart where cid = 11;
-
+-- 장바구니 총 상품 가격 : qty(cart), price(product)
+select sum(c.qty * p.price) as total_price
+from cart as c 
+inner join product as p on c.pid = p.pid
+where c.id = 'hong';
 
 
 
