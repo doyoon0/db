@@ -251,6 +251,53 @@ delete from cart;
 select count(*) as checkQty, cid from cart where pid = 1 and size = "xs" group by cid;
 select cid, sum(pid=1 and size='xs') as checkQty from cart group by cid order by checkQty desc limit 1;
 
+select
+	ifnull(max(cid), 0) as cid,
+    count(*) as checkQty
+from cart
+where pid = 1 and size = 'xs' and id = 'test';
+
+select * from cart;
+
+-- 장바구니 상품갯수 조회 : 정책별로 상이함. 
+select count(qty) from cart where id = 'hong';
+select ifnull(sum(qty), 0) as sumQty from cart where id = 'hong'; -- 보통 이거 씀.
+
+-- 장바구니 리스트 조회 : 
+-- 어떤 회원이 어떤 상품을 몇개 넣었는가???
+
+select * from product;
+select * from cart;
+select * from member;
+
+select 
+	m.id
+    , p.pid
+    , p.name
+    , p.image
+    , p.price
+    , c.size
+    , c.qty
+    , c.cid
+from member as m 
+inner join cart as c on m.id = c.id
+left outer join product as p on p.pid = c.pid
+where m.id = 'kim';
+
+update cart set qty = 2 where id = 'kim';
+
+delete from cart where cid = 11;
+
+
+
+
+
+
+
+
+
+
+
 
 
 
