@@ -270,10 +270,15 @@ select * from product;
 select * from cart;
 select * from member;
 
+-- 회원별 장바구니 리스트 조회
 select 
 	m.id
     , p.pid
+    , m.name
+	, m.phone
+	, m.email
     , p.name
+    , p.info
     , p.image
     , p.price
     , c.size
@@ -294,19 +299,125 @@ where m.id = 'kim';
 select sum(c.qty * p.price) as total_price
 from cart as c 
 inner join product as p on c.pid = p.pid
-where c.id = 'hong';
+where c.id = 'test';
+
+-- 장바구니 리스트 VIEW 생성
+-- show tables from information_schema;
+-- select * from information_schema.views where table_schema = 'shoppy';
+
+create view view_cartlist
+as
+select 
+	m.id
+    , p.pid
+    , m.name as mname
+	, m.phone
+	, m.email
+    , p.name
+    , p.info
+    , p.image
+    , p.price
+    , c.size
+    , c.qty
+    , c.cid
+    , totalPrice
+from member as m 
+inner join cart as c on m.id = c.id
+left outer join product as p on p.pid = c.pid
+left outer join (
+		select sum(c.qty * p.price) as totalPrice , c.cid 
+		from cart as c 
+		inner join product as p on c.pid = p.pid
+        group by c.cid
+) as total on c.cid = total.cid;
+
+create view view_cartlist
+as
+select 
+    m.id,
+    p.pid,
+    m.name as mname,
+    m.phone,
+    m.email,
+    p.name,
+    p.info,
+    p.image,
+    p.price,
+    c.size,
+    c.qty,
+    c.cid,
+    total.totalPrice
+from member as m
+inner join cart as c on m.id = c.id
+left join product as p on p.pid = c.pid
+left join (
+        select c.id, sum(c.qty * p.price) as totalPrice
+        from cart as c
+        inner join product as p on c.pid = p.pid
+        group by c.id
+) as total on m.id = total.id;
 
 
+show tables from information_schema;
+select * from information_schema.views where table_schema = 'shoppy';
 
+drop view view_cartlist;
+select id, name, phone, email, pid, name, info, image, price, size, qty, total.cid, total.totalPrice
+from view_cartlist as vc 
+inner join ( select sum(c.qty * p.price) as totalPrice , c.cid 
+		from cart as c 
+		inner join product as p on c.pid = p.pid
+        group by c.cid) as total on vc.cid = total.cid
+where id = 'test';
 
+/* 서브쿼리 종류
 
+select a, (select ~~~) as b : 스칼라 서브쿼리
+from test, (select ~~~) as t : 인라인 뷰
+where id = (select ~~~) : 서브쿼리
+*/
 
+select * from view_cartlist where id = 'test' ;
 
+/***************************************************
+	고객센터 테이블 생성 : support
+*************************************************/
+create table support (
+	sid			int				auto_increment		primary key
+    , title		varchar(100)	not null
+    , content	varchar(200)
+    , stype		varchar(30)		not null
+    , hits		int
+    , rdate		datetime
+);	
 
+show tables;
+select * from support;
+show variables like 'secure_file_priv';
 
+-- json_table을 이용하여 데이터 추가
+insert into support(stype, title, rdate, hits) 
+select
+	jt.stype
+	, jt.title
+    , jt.rdate
+    , jt.hits
+from
+	json_table(
+		cast(load_file('C:/ProgramData/MySQL/MySQL Server 8.0/Uploads/support_list.json') 
+				AS CHAR CHARACTER SET utf8mb4 ),
+		'$[*]' COLUMNS (
+			 stype			VARCHAR(30)		PATH '$.type',
+			 title   		VARCHAR(100)  	PATH '$.title',
+			 rdate			DATETIME 		PATH '$.rdate',
+             hits			int				PATH '$.hits'
+		   )   
+    ) as jt ;
 
+select * from support;
+select distinct stype from support;
 
-
+select sid, title, content, stype, hits, rdate from support where stype = "etc";
 
 
 
