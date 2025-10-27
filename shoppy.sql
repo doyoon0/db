@@ -420,6 +420,35 @@ select distinct stype from support;
 select sid, title, content, stype, hits, rdate from support where stype = "etc";
 
 
+/* mac os
+-- json 파일 형식은 [ { ~~} ], 배열로 감싼 형식
+SET @json = CAST(LOAD_FILE('/usr/local/mysql-files/support_list.json') AS CHAR CHARACTER SET utf8mb4);
+
+
+-- JSON이 잘 읽혔는지 확인
+SELECT LENGTH(@json) AS len, JSON_VALID(@json) AS is_valid;
+
+
+insert into support(title, stype, hits, rdate)
+select 
+	jt.title,
+    jt.stype,
+    jt.hits,
+    jt.rdate
+from
+	json_table(
+		@json,
+		'$[*]' COLUMNS (
+			 title   	VARCHAR(100)  PATH '$.title',
+			 stype   	VARCHAR(30)  PATH '$.type',
+			 hits   	int PATH '$.hits',
+			 rdate		datetime	 PATH '$.rdate'
+		   )   
+    ) as jt ;
+    */
+
+
+
 
 
 
