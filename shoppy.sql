@@ -447,6 +447,69 @@ from
     ) as jt ;
     */
 
+/*********************************************************************
+	주문 테이블 : orders
+**********************************************************************/
+use shoppy;
+select database();
+select * from member;
+desc member;
+drop table orders;
+create table orders (
+  oid         		int 			auto_increment	primary key,
+  order_code		varchar(40)		not null	unique,		-- 카카오 partner_order_id로 사용
+  member_id	      		varchar(50)    	not null,				-- 회원 아이디
+  status        	enum('대기중','결제중','결제완료','취소','환불','만료')
+					not null default	'대기중',
+  shipping_fee     	int				not null 	default 0,	-- 배송비
+  discount_amount  	int				not null 	default 0,	-- 할인금액
+  total_amount     	int				not null,  				-- 결제요청 금액(= 카카오 amount.total)
+
+  -- 수취/배송 스냅샷
+  receiver_name    	varchar(50),
+  receiver_phone   	varchar(50),
+  zipcode          	varchar(20),
+  address1         	varchar(255),
+  address2         	varchar(255),
+  memo             	varchar(255),
+  odate				datetime,
+  
+  constraint fk_orders_member foreign key(member_id)	references member(id)
+		on delete cascade	on update cascade
+);
+
+show tables;
+desc orders;
+select * from product;
+
+/*********************************************************************
+	주문 상세 테이블 : order_detail
+**********************************************************************/
+create table order_detail (
+	odid			int				auto_increment		primary key,
+	order_code		varchar(40)		not null,	
+    pid				int				not null,
+    pname			varchar(50),
+    size			char(2),
+    qty				int,
+    pid_total_price	decimal,		-- 상품 토탈가격
+    discount		decimal,		-- 할인 금액
+	
+    constraint fk_order_order_detail foreign key(order_code)	references orders(order_code)
+		on delete cascade   on update cascade,
+	constraint fk_product_order_detail foreign key(pid)	references product(pid)
+		on delete cascade  on update cascade
+);
+
+show tables;
+desc order_detail;
+
+select * from order_detail;
+select * from orders;
+select * from view_cartlist where id = "test";
+
+insert into orders(order_code, member_id, shipping_fee, discount_amount, total_amount, receiver_name, receiver_phone, zipcode, address1, address2, memo, odate) 
+values();
 
 
 
