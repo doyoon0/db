@@ -419,109 +419,56 @@ select distinct stype from support;
 
 select sid, title, content, stype, hits, rdate from support where stype = "etc";
 
-
-/* mac os
--- json 파일 형식은 [ { ~~} ], 배열로 감싼 형식
-SET @json = CAST(LOAD_FILE('/usr/local/mysql-files/support_list.json') AS CHAR CHARACTER SET utf8mb4);
-
-
--- JSON이 잘 읽혔는지 확인
-SELECT LENGTH(@json) AS len, JSON_VALID(@json) AS is_valid;
-
-
-insert into support(title, stype, hits, rdate)
-select 
-	jt.title,
-    jt.stype,
-    jt.hits,
-    jt.rdate
-from
-	json_table(
-		@json,
-		'$[*]' COLUMNS (
-			 title   	VARCHAR(100)  PATH '$.title',
-			 stype   	VARCHAR(30)  PATH '$.type',
-			 hits   	int PATH '$.hits',
-			 rdate		datetime	 PATH '$.rdate'
-		   )   
-    ) as jt ;
-    */
-
-/*********************************************************************
-	주문 테이블 : orders
-**********************************************************************/
-use shoppy;
-select database();
-select * from member;
 desc member;
-drop table orders;
-create table orders (
-  oid         		int 			auto_increment	primary key,
-  order_code		varchar(40)		not null	unique,		-- 카카오 partner_order_id로 사용
-  member_id	      		varchar(50)    	not null,				-- 회원 아이디
-  status        	enum('대기중','결제중','결제완료','취소','환불','만료')
-					not null default	'대기중',
-  shipping_fee     	int				not null 	default 0,	-- 배송비
-  discount_amount  	int				not null 	default 0,	-- 할인금액
-  total_amount     	int				not null,  				-- 결제요청 금액(= 카카오 amount.total)
+select * from member order by mdate desc limit 2;
 
-  -- 수취/배송 스냅샷
-  receiver_name    	varchar(50),
-  receiver_phone   	varchar(50),
-  zipcode          	varchar(20),
-  address1         	varchar(255),
-  address2         	varchar(255),
-  memo             	varchar(255),
-  odate				datetime,
-  
-  constraint fk_orders_member foreign key(member_id)	references member(id)
-		on delete cascade	on update cascade
-);
+-- findById('test')
+select id from member where id = 'test';
 
-show tables;
 desc orders;
-select * from product;
-
-/*********************************************************************
-	주문 상세 테이블 : order_detail
-**********************************************************************/
-create table order_detail (
-	odid			int				auto_increment		primary key,
-	order_code		varchar(40)		not null,	
-    pid				int				not null,
-    pname			varchar(50),
-    size			char(2),
-    qty				int,
-    pid_total_price	decimal,		-- 상품 토탈가격
-    discount		decimal,		-- 할인 금액
-	
-    constraint fk_order_order_detail foreign key(order_code)	references orders(order_code)
-		on delete cascade   on update cascade,
-	constraint fk_product_order_detail foreign key(pid)	references product(pid)
-		on delete cascade  on update cascade
-);
-
+ALTER TABLE product CHANGE imgList img_list JSON;
 show tables;
-desc order_detail;
+desc product_qna;
+desc product_return;
 
-select * from order_detail;
-select * from orders;
-select * from view_cartlist where id = "test";
+use shoppy;
+select * from cart;
+desc cart;
 
-insert into orders(order_code, member_id, shipping_fee, discount_amount, total_amount, receiver_name, receiver_phone, zipcode, address1, address2, memo, odate) 
-values();
+select * from view_cartlist;
+desc view_cartlist;
 
-
-
-
-
-
-
-
-
-
-
-
-
+/***************************************************************************
+-- 장바구니 리스트 VIEW 생성
+-- show tables from information_schema;
+-- select * from information_schema.views where table_schema = 'shoppy';
+*****************************************************************************/
+drop view view_cartlist;
+select * from information_schema.views where table_name='view_cartlist'; -- mysql에서는 view를 수정 불가!!, 컬럼 수정 시 재 생성
+create view view_cartlist
+as
+select 
+	m.id
+    , p.pid
+    , m.name as mname
+	, m.phone
+	, m.email
+    , p.name
+    , p.info
+    , p.image
+    , p.price
+    , c.size
+    , c.qty
+    , c.cid
+    , t.total_price
+from member as m 
+inner join cart as c on m.id = c.id
+left outer join product as p on p.pid = c.pid
+left outer join (
+		select sum(c.qty * p.price) as total_price , c.id 
+		from cart as c 
+		inner join product as p on c.pid = p.pid
+        group by c.id
+) as t on c.id = t.id;
 
 
