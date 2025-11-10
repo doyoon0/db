@@ -471,4 +471,17 @@ left outer join (
         group by c.id
 ) as t on c.id = t.id;
 
+-- 2025-11-10
+use shoppy;
+select * from order_detail;
+select * from orders;
+select * from cart;
+
+-- 데이터 삭제 후 주문 테스트
+SET SQL_SAFE_UPDATES = 0;
+
+delete from orders;
+delete from cart;
+
+select * from support;
 
